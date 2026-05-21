@@ -21,12 +21,29 @@ export async function POST(req: NextRequest) {
     : ((body as { results?: ApifyJobResult[] }).results ?? []);
 
   if (!items.length) {
-    return NextResponse.json({ inserted: 0, updated: 0 });
+    return NextResponse.json({ upserted: 0, filtered: 0 });
+  }
+
+  // Keep only contract/freelance/temp roles
+  const CONTRACT_TERMS = ["contract", "contractor", "freelance", "temp", "temporary", "1099"];
+
+  const contractOnly = items.filter((job) => {
+    const typesMatch = job.job_types?.some((t) =>
+      CONTRACT_TERMS.some((term) => t.toLowerCase().includes(term))
+    );
+    const titleMatch = CONTRACT_TERMS.some((term) =>
+      job.title?.toLowerCase().includes(term)
+    );
+    return typesMatch || titleMatch;
+  });
+
+  if (!contractOnly.length) {
+    return NextResponse.json({ upserted: 0, filtered: items.length });
   }
 
   const supabase = createServiceClient();
 
-  const rows = items.map((job) => ({
+  const rows = contractOnly.map((job) => ({
     jobkey: job.jobkey,
     title: job.title,
     normalized_title: job.normalized_title ?? null,
@@ -63,5 +80,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ upserted: rows.length });
+  return NextResponse.json({
+    upserted: rows.length,
+    filtered: items.length - contractOnly.length,
+  });
 }
