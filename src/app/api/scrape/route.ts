@@ -8,7 +8,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const actorId = process.env.APIFY_ACTOR_ID;
+  // valig/indeed-jobs-scraper
+  const actorId = process.env.APIFY_ACTOR_ID ?? "valig/indeed-jobs-scraper";
   const token = process.env.APIFY_API_TOKEN;
 
   if (!actorId || !token) {

@@ -48,33 +48,40 @@ export type Profile = {
 
 export type MatchedJob = Job & { match_score: number };
 
-// Apify scraper output shape (relevant fields only)
+// valig/indeed-jobs-scraper output shape
 export type ApifyJobResult = {
-  jobkey: string;
+  key?: string;
+  url?: string;
   title: string;
-  normalized_title?: string;
-  company: string;
-  company_id?: string;
-  company_rating?: number;
-  job_location_city?: string;
-  job_location_state?: string;
-  formatted_location?: string;
-  remote_location?: boolean;
-  extracted_salary?: {
+  jobUrl?: string;
+  refNum?: string;
+  datePublished?: string;
+  dateOnIndeed?: string;
+  expired?: boolean;
+  isUrgentHire?: boolean;
+  isHighVolumeHiring?: boolean;
+  isPlacement?: boolean;
+  location?: {
+    city?: string;
+    admin1Code?: string;  // state abbreviation e.g. "NY"
+    countryCode?: string;
+  };
+  employer?: {
+    name?: string;
+    ratingsValue?: number;
+    ratingsCount?: number;
+  };
+  // Flat key-value pairs with obfuscated keys; values are human-readable
+  // e.g. { "CF3CP": "Full-time", "AWHEP": "Paid holidays" }
+  attributes?: Record<string, string>;
+  baseSalary?: {
     min?: number;
     max?: number;
-    type?: string;
+    unitOfWork?: string;  // "YEAR" | "HOUR"
+    currencyCode?: string;
   };
-  salary_snippet?: string;
-  job_types?: string[];
-  snippet?: string;
-  link?: string;
-  third_party_apply_url?: string;
-  indeed_apply_enabled?: boolean;
-  sponsored?: boolean;
-  urgently_hiring?: boolean;
-  organic_apply_start_count?: number;
-  publication_date?: string;
-  create_date?: string;
-  expired?: boolean;
+  description?: {
+    text?: string;
+    html?: string;
+  };
 };

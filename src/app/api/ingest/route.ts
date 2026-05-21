@@ -2,6 +2,46 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { ApifyJobResult } from "@/lib/types";
 
+const CONTRACT_TERMS = ["contract", "contractor", "freelance", "temp", "temporary", "1099"];
+
+function isContract(job: ApifyJobResult): boolean {
+  // Check attribute values (e.g. "CF3CP": "Contract")
+  if (job.attributes) {
+    const attrValues = Object.values(job.attributes).map((v) => v.toLowerCase());
+    if (attrValues.some((v) => CONTRACT_TERMS.some((t) => v.includes(t)))) return true;
+  }
+  // Fall back to title
+  const title = job.title?.toLowerCase() ?? "";
+  return CONTRACT_TERMS.some((t) => title.includes(t));
+}
+
+function extractJobTypes(job: ApifyJobResult): string[] {
+  if (!job.attributes) return [];
+  const typeKeywords = [
+    "contract", "full-time", "part-time", "temporary", "freelance",
+    "internship", "remote", "hybrid", "on-site",
+  ];
+  return Object.values(job.attributes).filter((v) =>
+    typeKeywords.some((k) => v.toLowerCase().includes(k))
+  );
+}
+
+function normalizeSalaryType(unitOfWork?: string): string | null {
+  if (!unitOfWork) return null;
+  const u = unitOfWork.toUpperCase();
+  if (u === "YEAR") return "yearly";
+  if (u === "HOUR") return "hourly";
+  return unitOfWork.toLowerCase();
+}
+
+function isRemote(job: ApifyJobResult): boolean {
+  if (job.attributes) {
+    const vals = Object.values(job.attributes).map((v) => v.toLowerCase());
+    if (vals.some((v) => v.includes("remote"))) return true;
+  }
+  return job.title?.toLowerCase().includes("remote") ?? false;
+}
+
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-webhook-secret");
   if (secret !== process.env.APIFY_WEBHOOK_SECRET) {
@@ -15,7 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // Apify sends either the dataset items directly or wraps them
   const items: ApifyJobResult[] = Array.isArray(body)
     ? (body as ApifyJobResult[])
     : ((body as { results?: ApifyJobResult[] }).results ?? []);
@@ -24,18 +63,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ upserted: 0, filtered: 0 });
   }
 
-  // Keep only contract/freelance/temp roles
-  const CONTRACT_TERMS = ["contract", "contractor", "freelance", "temp", "temporary", "1099"];
-
-  const contractOnly = items.filter((job) => {
-    const typesMatch = job.job_types?.some((t) =>
-      CONTRACT_TERMS.some((term) => t.toLowerCase().includes(term))
-    );
-    const titleMatch = CONTRACT_TERMS.some((term) =>
-      job.title?.toLowerCase().includes(term)
-    );
-    return typesMatch || titleMatch;
-  });
+  const contractOnly = items.filter(isContract);
 
   if (!contractOnly.length) {
     return NextResponse.json({ upserted: 0, filtered: items.length });
@@ -43,37 +71,47 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServiceClient();
 
-  const rows = contractOnly.map((job) => ({
-    jobkey: job.jobkey,
-    title: job.title,
-    normalized_title: job.normalized_title ?? null,
-    company: job.company ?? null,
-    company_id: job.company_id ?? null,
-    company_rating: job.company_rating ?? null,
-    location_city: job.job_location_city ?? null,
-    location_state: job.job_location_state ?? null,
-    formatted_location: job.formatted_location ?? null,
-    is_remote: job.remote_location ?? false,
-    salary_min: job.extracted_salary?.min ?? null,
-    salary_max: job.extracted_salary?.max ?? null,
-    salary_type: job.extracted_salary?.type ?? null,
-    salary_snippet: job.salary_snippet ?? null,
-    job_types: job.job_types ?? null,
-    snippet: job.snippet ?? null,
-    apply_url: job.third_party_apply_url ?? job.link ?? null,
-    indeed_apply: job.indeed_apply_enabled ?? false,
-    sponsored: job.sponsored ?? false,
-    urgently_hiring: job.urgently_hiring ?? false,
-    apply_count: job.organic_apply_start_count ?? null,
-    published_at: job.publication_date ?? job.create_date ?? null,
-    expired: job.expired ?? false,
-    scraped_at: new Date().toISOString(),
-    raw: job,
-  }));
+  const rows = contractOnly.map((job) => {
+    const jobkey = job.key ?? job.refNum ?? job.url ?? job.jobUrl ?? "";
+    const city = job.location?.city ?? null;
+    const state = job.location?.admin1Code ?? null;
+    const formattedLocation = [city, state].filter(Boolean).join(", ") || null;
+
+    return {
+      jobkey,
+      title: job.title,
+      normalized_title: null,
+      company: job.employer?.name ?? null,
+      company_id: null,
+      company_rating: job.employer?.ratingsValue ?? null,
+      location_city: city,
+      location_state: state,
+      formatted_location: formattedLocation,
+      is_remote: isRemote(job),
+      salary_min: job.baseSalary?.min ?? null,
+      salary_max: job.baseSalary?.max ?? null,
+      salary_type: normalizeSalaryType(job.baseSalary?.unitOfWork),
+      salary_snippet: null,
+      job_types: extractJobTypes(job),
+      snippet: job.description?.text?.slice(0, 500) ?? null,
+      apply_url: job.jobUrl ?? job.url ?? null,
+      indeed_apply: false,
+      sponsored: job.isPlacement ?? false,
+      urgently_hiring: job.isUrgentHire ?? false,
+      apply_count: null,
+      published_at: job.datePublished ?? job.dateOnIndeed ?? null,
+      expired: job.expired ?? false,
+      scraped_at: new Date().toISOString(),
+      raw: job,
+    };
+  });
+
+  // Drop rows with no usable jobkey
+  const validRows = rows.filter((r) => r.jobkey.length > 0);
 
   const { error } = await supabase
     .from("jobs")
-    .upsert(rows, { onConflict: "jobkey", ignoreDuplicates: false });
+    .upsert(validRows, { onConflict: "jobkey", ignoreDuplicates: false });
 
   if (error) {
     console.error("Ingest error:", error);
@@ -81,7 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    upserted: rows.length,
+    upserted: validRows.length,
     filtered: items.length - contractOnly.length,
   });
 }
