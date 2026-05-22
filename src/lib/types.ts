@@ -1,6 +1,7 @@
 export type Job = {
   id: string;
   jobkey: string;
+  source: string;
   title: string;
   normalized_title: string | null;
   company: string | null;
@@ -48,32 +49,63 @@ export type Profile = {
 
 export type MatchedJob = Job & { match_score: number };
 
-// borderline/indeed-scraper output shape
-export type ApifyJobResult = {
+// ── Indeed (borderline/indeed-scraper) ──────────────────────────────────────
+export type IndeedJobResult = {
   jobKey: string;
   title: string;
-  jobType?: string[];           // e.g. ["Contract", "Remote"]
+  jobType?: string[];
   descriptionText?: string;
   companyName?: string;
   location?: {
     city?: string;
-    formattedAddressShort?: string;  // "City, ST"
+    formattedAddressShort?: string;
   };
   salary?: {
-    salaryText?: string;    // "From $27 an hour"
-    salaryType?: string;    // "hourly" | "yearly"
+    salaryText?: string;
+    salaryType?: string;
   };
-  rating?: {
-    rating?: number;
-    count?: number;
-  };
-  hiringDemand?: {
-    isHighVolumeHiring?: boolean;
-    isUrgentHire?: boolean;
-  };
+  rating?: { rating?: number; count?: number };
+  hiringDemand?: { isHighVolumeHiring?: boolean; isUrgentHire?: boolean };
   isRemote?: boolean;
-  datePublished?: string;   // "2026-05-11"
+  datePublished?: string;
   expired?: boolean;
-  jobUrl?: string;          // Indeed detail page
-  applyUrl?: string;        // employer apply link
+  jobUrl?: string;
+  applyUrl?: string;
 };
+
+// ── LinkedIn (curious_coder/linkedin-jobs-scraper) ───────────────────────────
+export type LinkedInJobResult = {
+  id?: string;
+  title?: string;
+  company?: string | { name?: string };
+  location?: string;
+  description?: string;
+  url?: string;
+  applyUrl?: string;
+  employmentType?: string;
+  contractType?: string;
+  postedAt?: string;
+  salary?: string | null;
+  isRemote?: boolean;
+};
+
+// ── ZipRecruiter (bebity/ziprecruiter-scraper) ───────────────────────────────
+export type ZipRecruiterJobResult = {
+  id?: string;
+  title?: string;
+  company?: string;
+  city?: string;
+  state?: string;
+  location?: string;
+  description?: string;
+  url?: string;
+  jobType?: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryInterval?: string | null;
+  salary?: string | null;
+  postedDate?: string | null;
+};
+
+// Legacy alias kept for any references that haven't been updated
+export type ApifyJobResult = IndeedJobResult;
