@@ -206,6 +206,39 @@ function ProfileForm() {
         Tell us what you&apos;re looking for and we&apos;ll surface the best-fit contract roles.
       </p>
 
+      {/* How matching works */}
+      <div className="bg-tkw-paper-soft border border-tkw-hairline rounded-lg p-5 mb-10">
+        <p className="font-mono text-[11px] font-medium tracking-[0.12em] uppercase text-tkw-ink-mute mb-3">
+          How matching works
+        </p>
+        <div className="space-y-2.5 text-sm text-tkw-ink-soft leading-relaxed">
+          <p>
+            Every job in the database gets a <span className="font-semibold text-tkw-ink">match score from 0–100</span> based on your profile. Your matches page shows only jobs that score 30 or higher, ranked best-fit first.
+          </p>
+          <p>
+            The score is built from four signals — fill out whichever ones apply to you:
+          </p>
+          <ul className="space-y-1.5 pl-1">
+            <li className="flex gap-3">
+              <span className="font-mono font-bold text-tkw-battle shrink-0">40 pts</span>
+              <span><span className="font-semibold text-tkw-ink">Role types</span> — the biggest signal. Select every type you&apos;re open to. A CPA open to controller and bookkeeper work should check all three.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono font-bold text-tkw-battle shrink-0">25 pts</span>
+              <span><span className="font-semibold text-tkw-ink">Skills</span> — select tools you actually know. Jobs that mention your skills in their description rank higher. Not selecting a skill won&apos;t hide jobs — it just won&apos;t boost them.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono font-bold text-tkw-battle shrink-0">20 pts</span>
+              <span><span className="font-semibold text-tkw-ink">Remote / location</span> — remote jobs score full points if you&apos;re open to remote. On-site roles in your state score 15; out-of-state on-site roles score 5.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono font-bold text-tkw-battle shrink-0">15 pts</span>
+              <span><span className="font-semibold text-tkw-ink">Rate</span> — jobs that meet your minimum rate score full points. Jobs within 10% of your minimum score partial credit. Jobs with no rate listed score 8 pts so they still surface.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <div className="space-y-10">
         {/* Basic info */}
         <section>
