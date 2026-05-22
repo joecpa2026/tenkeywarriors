@@ -67,11 +67,10 @@ export async function GET(req: NextRequest) {
     { search: "financial analyst cost accountant budget analyst contract", location: "" },
   ];
 
-  const [indeedResult, linkedInResult, zipResult] = await Promise.all([
+  const [indeedResult, linkedInResult] = await Promise.all([
     runActor("borderline/indeed-scraper", { urls: indeedUrls, maxItems: 800 }, "indeed"),
-    runActor("curious_coder/linkedin-jobs-scraper", { startUrls: linkedInUrls.map(url => ({ url })), maxResults: 500 }, "linkedin"),
-    runActor("bebity/ziprecruiter-scraper", { queries: zipQueries, maxItems: 500 }, "ziprecruiter"),
+    runActor("curious_coder/linkedin-jobs-scraper", { urls: linkedInUrls, maxResults: 500 }, "linkedin"),
   ]);
 
-  return NextResponse.json({ sources: [indeedResult, linkedInResult, zipResult] });
+  return NextResponse.json({ sources: [indeedResult, linkedInResult] });
 }
