@@ -57,23 +57,29 @@ export async function GET(req: NextRequest) {
   ];
 
   // ── LinkedIn (curious_coder/linkedin-jobs-scraper) ───────────────────────────
-  // f_JT=C = Contract, f_TPR=r604800 = posted last week, sortBy=DD = newest first
+  // f_JT=C = Contract, f_TPR=r2592000 = posted last 30 days, sortBy=DD = newest first
+  // One broad keyword per URL so LinkedIn returns max results per search
   const linkedInUrls = [
-    "https://www.linkedin.com/jobs/search/?keywords=accountant+CPA+controller+CFO&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=bookkeeper+accounts+payable+accounts+receivable&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=tax+accountant+auditor+payroll&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=financial+analyst+cost+accountant+budget+analyst&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=staff+accountant+senior+accountant+accounting+manager&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=finance+manager+director+finance+VP+finance+FP%26A&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=billing+specialist+billing+manager+collections+credit+analyst&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=treasury+analyst+grant+accountant+revenue+accountant+GL+accountant&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=internal+auditor+tax+manager+forensic+accountant+fund+accountant&f_JT=C&f_TPR=r604800&sortBy=DD",
-    "https://www.linkedin.com/jobs/search/?keywords=fixed+assets+accountant+property+accountant+cost+accounting+comptroller&f_JT=C&f_TPR=r604800&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=accountant&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=CPA&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=controller&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=CFO&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=bookkeeper&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=tax+accountant&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=payroll&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=financial+analyst&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=accounts+payable&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=accounts+receivable&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=staff+accountant&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=senior+accountant&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=accounting+manager&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=auditor&f_JT=C&f_TPR=r2592000&sortBy=DD",
+    "https://www.linkedin.com/jobs/search/?keywords=finance+manager&f_JT=C&f_TPR=r2592000&sortBy=DD",
   ];
 
   const [indeedResult, linkedInResult] = await Promise.all([
     runActor("misceres/indeed-scraper", { startUrls: indeedUrls.map(url => ({ url })), maxItems: 200 }, "indeed"),
-    runActor("curious_coder/linkedin-jobs-scraper", { urls: linkedInUrls, maxResults: 500 }, "linkedin", true),
+    runActor("curious_coder/linkedin-jobs-scraper", { urls: linkedInUrls, maxResults: 3000 }, "linkedin", true),
   ]);
 
   return NextResponse.json({ sources: [indeedResult, linkedInResult] });
