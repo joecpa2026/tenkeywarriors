@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { JobCard } from "@/components/JobCard";
 import type { Job } from "@/lib/types";
+
+const PAGE_SIZE = 50;
 
 const ROLE_OPTIONS = [
   "Accountant",
@@ -36,47 +38,69 @@ const inputClass =
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
 
-  const fetchJobs = useCallback(async () => {
-    setLoading(true);
+  // Track current filter fingerprint so we can reset on filter change
+  const filterKey = `${search}|${role}|${location}`;
+  const prevFilterKey = useRef(filterKey);
+
+  const buildQuery = useCallback((supabase: ReturnType<typeof createClient>, from: number) => {
+    let q = supabase
+      .from("jobs")
+      .select("*", { count: "exact" })
+      .eq("expired", false)
+      .order("published_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (search.trim()) q = q.ilike("title", `%${search.trim()}%`);
+    if (role) q = q.ilike("title", `%${role}%`);
+    if (location === "Remote") q = q.eq("is_remote", true);
+    else if (location) q = q.eq("location_state", location);
+
+    return q;
+  }, [search, role, location]);
+
+  // Initial load + filter changes → reset list
+  useEffect(() => {
     if (!isSupabaseConfigured) {
       setJobs([]);
       setLoading(false);
       return;
     }
+
+    setLoading(true);
+    setPage(0);
+    setHasMore(true);
+    prevFilterKey.current = filterKey;
+
     const supabase = createClient();
+    buildQuery(supabase, 0).then(({ data, count }) => {
+      setJobs((data as Job[]) ?? []);
+      setTotal(count ?? null);
+      setHasMore((data?.length ?? 0) === PAGE_SIZE);
+      setLoading(false);
+    });
+  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    let query = supabase
-      .from("jobs")
-      .select("*")
-      .eq("expired", false)
-      .order("published_at", { ascending: false })
-      .limit(250);
-
-    if (search.trim()) {
-      query = query.ilike("title", `%${search.trim()}%`);
-    }
-    if (role) {
-      query = query.ilike("title", `%${role}%`);
-    }
-    if (location === "Remote") {
-      query = query.eq("is_remote", true);
-    } else if (location) {
-      query = query.eq("location_state", location);
-    }
-
-    const { data } = await query;
-    setJobs((data as Job[]) ?? []);
-    setLoading(false);
-  }, [search, role, location]);
-
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !isSupabaseConfigured) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const supabase = createClient();
+    const { data } = await buildQuery(supabase, nextPage * PAGE_SIZE);
+    const newJobs = (data as Job[]) ?? [];
+    setJobs((prev) => [...prev, ...newJobs]);
+    setPage(nextPage);
+    setHasMore(newJobs.length === PAGE_SIZE);
+    setLoadingMore(false);
+  };
 
   return (
     <div>
@@ -131,13 +155,33 @@ export default function JobsPage() {
       ) : (
         <>
           <p className="font-mono text-xs text-tkw-ink-mute tracking-wide mb-4">
-            {jobs.length} role{jobs.length !== 1 ? "s" : ""} found
+            {total !== null ? `${total.toLocaleString()} roles in database` : `${jobs.length} roles found`}
+            {(search || role || location) && ` · filtered`}
           </p>
+
           <div className="space-y-3">
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} />
             ))}
           </div>
+
+          {hasMore && (
+            <div className="text-center mt-8">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="inline-flex items-center gap-2 border border-tkw-hairline bg-tkw-paper-soft text-tkw-ink text-sm font-semibold px-6 py-3 rounded-md hover:bg-tkw-paper-deep disabled:opacity-50 transition-colors"
+              >
+                {loadingMore ? "Loading..." : `Load more · showing ${jobs.length} of ${total?.toLocaleString() ?? "?"}`}
+              </button>
+            </div>
+          )}
+
+          {!hasMore && jobs.length > PAGE_SIZE && (
+            <p className="text-center mt-8 font-mono text-xs text-tkw-ink-mute tracking-wide">
+              All {jobs.length.toLocaleString()} roles loaded
+            </p>
+          )}
         </>
       )}
     </div>
