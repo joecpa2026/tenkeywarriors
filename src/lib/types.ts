@@ -77,16 +77,15 @@ export type IndeedJobResult = {
 export type LinkedInJobResult = {
   id?: string;
   title?: string;
-  company?: string | { name?: string };
+  companyName?: string;
   location?: string;
-  description?: string;
-  url?: string;
+  descriptionText?: string;
+  link?: string;
   applyUrl?: string;
   employmentType?: string;
-  contractType?: string;
   postedAt?: string;
   salary?: string | null;
-  isRemote?: boolean;
+  workRemoteAllowed?: boolean;
 };
 
 // ── ZipRecruiter (bebity/ziprecruiter-scraper) ───────────────────────────────

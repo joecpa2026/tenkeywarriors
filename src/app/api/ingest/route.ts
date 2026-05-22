@@ -101,23 +101,19 @@ function normalizeIndeed(job: IndeedJobResult): JobRow | null {
 function normalizeLinkedIn(job: LinkedInJobResult): JobRow | null {
   if (!job.id || !job.title) return null;
 
-  const empType = job.employmentType ?? job.contractType ?? "";
+  const empType = job.employmentType ?? "";
   const isContract = isContractType(empType) || isContractByTitle(job.title);
   if (!isContract) return null;
 
-  const companyName = typeof job.company === "string"
-    ? job.company
-    : job.company?.name ?? null;
-
   const location = job.location ?? null;
-  const isRemote = job.isRemote ?? /remote/i.test(location ?? "");
+  const isRemote = job.workRemoteAllowed ?? /remote/i.test(location ?? "");
 
   return {
     jobkey: `li_${job.id}`,
     source: "linkedin",
     title: job.title,
     normalized_title: null,
-    company: companyName,
+    company: job.companyName ?? null,
     company_id: null,
     company_rating: null,
     location_city: null,
@@ -129,8 +125,8 @@ function normalizeLinkedIn(job: LinkedInJobResult): JobRow | null {
     salary_type: null,
     salary_snippet: typeof job.salary === "string" ? job.salary : null,
     job_types: empType ? [empType] : [],
-    snippet: job.description?.slice(0, 500) ?? null,
-    apply_url: job.applyUrl ?? job.url ?? null,
+    snippet: job.descriptionText?.slice(0, 500) ?? null,
+    apply_url: job.applyUrl ?? job.link ?? null,
     indeed_apply: false,
     sponsored: false,
     urgently_hiring: false,
