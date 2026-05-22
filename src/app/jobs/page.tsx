@@ -6,7 +6,23 @@ import { JobCard } from "@/components/JobCard";
 import type { Job } from "@/lib/types";
 
 const ROLE_OPTIONS = [
-  "CPA", "Controller", "Bookkeeper", "CFO", "Tax", "Audit", "Payroll",
+  "Accountant",
+  "CPA",
+  "Controller",
+  "CFO",
+  "Finance Manager",
+  "Bookkeeper",
+  "Tax",
+  "Audit",
+  "Payroll",
+  "Accounts Payable",
+  "Accounts Receivable",
+  "Cost Accounting",
+  "Financial Analyst",
+  "Budget Analyst",
+  "Grant Accounting",
+  "Treasury",
+  "Billing",
 ];
 const STATE_OPTIONS = [
   "Remote", "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID",
@@ -36,7 +52,7 @@ export default function JobsPage() {
       .select("*")
       .eq("expired", false)
       .order("published_at", { ascending: false })
-      .limit(100);
+      .limit(250);
 
     if (search.trim()) {
       query = query.ilike("title", `%${search.trim()}%`);
@@ -104,11 +120,14 @@ export default function JobsPage() {
           No jobs found. Try adjusting your filters.
         </div>
       ) : (
-        <div className="space-y-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
+        <>
+          <p className="text-sm text-gray-400 mb-3">{jobs.length} role{jobs.length !== 1 ? "s" : ""} found</p>
+          <div className="space-y-3">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

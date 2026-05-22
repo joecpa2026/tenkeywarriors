@@ -2,6 +2,11 @@
 
 import type { Job, MatchedJob } from "@/lib/types";
 
+// Only show tags that add info beyond "it's a contract role" — which is already the whole site
+const DISPLAY_TAGS = new Set([
+  "part-time", "full-time", "hybrid", "seasonal", "internship",
+]);
+
 type Props = {
   job: Job | MatchedJob;
   showScore?: boolean;
@@ -64,14 +69,16 @@ export function JobCard({ job, showScore = false }: Props) {
             Remote
           </span>
         )}
-        {job.job_types?.map((t) => (
-          <span
-            key={t}
-            className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize"
-          >
-            {t}
-          </span>
-        ))}
+        {job.job_types
+          ?.filter((t) => DISPLAY_TAGS.has(t.toLowerCase()))
+          .map((t) => (
+            <span
+              key={t}
+              className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize"
+            >
+              {t}
+            </span>
+          ))}
         {job.urgently_hiring && (
           <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-medium">
             Urgently hiring

@@ -8,37 +8,37 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // valig/indeed-jobs-scraper
-  const actorId = process.env.APIFY_ACTOR_ID ?? "valig/indeed-jobs-scraper";
+  // borderline/indeed-scraper
+  const actorId = process.env.APIFY_ACTOR_ID ?? "borderline/indeed-scraper";
   const token = process.env.APIFY_API_TOKEN;
 
   if (!actorId || !token) {
     return NextResponse.json({ error: "Apify not configured" }, { status: 500 });
   }
 
-  // Accounting-focused search URLs to scrape
+  // Indeed search URLs with contract filter (NJXCK) pre-applied, sorted by date.
+  // Four queries cover the full accounting/finance domain.
   const searchUrls = [
-    "https://www.indeed.com/jobs?q=contract+accountant&l=&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date",
-    "https://www.indeed.com/jobs?q=contract+CPA&l=&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date",
-    "https://www.indeed.com/jobs?q=fractional+CFO+contract&l=&sort=date",
-    "https://www.indeed.com/jobs?q=contract+controller&l=&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date",
-    "https://www.indeed.com/jobs?q=contract+bookkeeper&l=&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date",
-    "https://www.indeed.com/jobs?q=contract+tax+accountant&l=&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date",
-    "https://www.indeed.com/jobs?q=remote+contract+accountant&l=Remote&sort=date",
+    // Core accounting & leadership
+    "https://www.indeed.com/jobs?q=accountant%2C+CPA%2C+controller%2C+CFO%2C+finance+manager&sc=0kf%3Aattr%28NJXCK%29%3B&sort=date",
+    // Bookkeeping, AP/AR, billing
+    "https://www.indeed.com/jobs?q=bookkeeper%2C+accounts+payable%2C+accounts+receivable%2C+billing+specialist&sc=0kf%3Aattr%28NJXCK%29%3B&sort=date",
+    // Tax, audit, compliance
+    "https://www.indeed.com/jobs?q=tax+accountant%2C+tax+preparer%2C+auditor%2C+audit%2C+tax+manager&sc=0kf%3Aattr%28NJXCK%29%3B&sort=date",
+    // Payroll, FP&A, cost, specialty
+    "https://www.indeed.com/jobs?q=payroll%2C+cost+accountant%2C+financial+analyst%2C+budget+analyst%2C+grant+accountant&sc=0kf%3Aattr%28NJXCK%29%3B&sort=date",
   ];
 
   const ingestUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/ingest`;
 
   const res = await fetch(
-    `https://api.apify.com/v2/acts/${actorId}/runs?token=${token}`,
+    `https://api.apify.com/v2/acts/${actorId.replace("/", "~")}/runs?token=${token}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        urls: searchUrls.map((url) => ({ url })),
-        max_items_per_url: 50,
-        ignore_url_failures: true,
-        proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ["RESIDENTIAL"] },
+        urls: searchUrls,
+        maxItems: 800,
         webhooks: [
           {
             eventTypes: ["ACTOR.RUN.SUCCEEDED"],

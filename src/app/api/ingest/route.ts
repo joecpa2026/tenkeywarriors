@@ -2,44 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { ApifyJobResult } from "@/lib/types";
 
-const CONTRACT_TERMS = ["contract", "contractor", "freelance", "temp", "temporary", "1099"];
+const CONTRACT_JOB_TYPES = new Set([
+  "contract", "contractor", "freelance", "temp", "temporary",
+  "1099", "1099 contract", "1099 contractor",
+]);
+
+const CONTRACT_TITLE_TERMS = ["contract", "contractor", "freelance", "1099", "fractional"];
 
 function isContract(job: ApifyJobResult): boolean {
-  // Check attribute values (e.g. "CF3CP": "Contract")
-  if (job.attributes) {
-    const attrValues = Object.values(job.attributes).map((v) => v.toLowerCase());
-    if (attrValues.some((v) => CONTRACT_TERMS.some((t) => v.includes(t)))) return true;
+  if (job.jobType?.length) {
+    const types = job.jobType.map((t) => t.toLowerCase().trim());
+    if (types.some((t) => CONTRACT_JOB_TYPES.has(t) || t.startsWith("1099"))) return true;
   }
-  // Fall back to title
   const title = job.title?.toLowerCase() ?? "";
-  return CONTRACT_TERMS.some((t) => title.includes(t));
+  return CONTRACT_TITLE_TERMS.some((t) => title.includes(t));
 }
 
 function extractJobTypes(job: ApifyJobResult): string[] {
-  if (!job.attributes) return [];
-  const typeKeywords = [
-    "contract", "full-time", "part-time", "temporary", "freelance",
-    "internship", "remote", "hybrid", "on-site",
-  ];
-  return Object.values(job.attributes).filter((v) =>
-    typeKeywords.some((k) => v.toLowerCase().includes(k))
-  );
+  return job.jobType ?? [];
 }
 
-function normalizeSalaryType(unitOfWork?: string): string | null {
-  if (!unitOfWork) return null;
-  const u = unitOfWork.toUpperCase();
-  if (u === "YEAR") return "yearly";
-  if (u === "HOUR") return "hourly";
-  return unitOfWork.toLowerCase();
-}
-
-function isRemote(job: ApifyJobResult): boolean {
-  if (job.attributes) {
-    const vals = Object.values(job.attributes).map((v) => v.toLowerCase());
-    if (vals.some((v) => v.includes("remote"))) return true;
-  }
-  return job.title?.toLowerCase().includes("remote") ?? false;
+// Extract state abbreviation from "City, ST" or "City, ST 12345"
+function parseState(formattedAddress?: string): string | null {
+  if (!formattedAddress) return null;
+  const match = formattedAddress.match(/,\s*([A-Z]{2})/);
+  return match ? match[1] : null;
 }
 
 export async function POST(req: NextRequest) {
@@ -72,42 +59,46 @@ export async function POST(req: NextRequest) {
   const supabase = createServiceClient();
 
   const rows = contractOnly.map((job) => {
-    const jobkey = job.key ?? job.refNum ?? job.url ?? job.jobUrl ?? "";
     const city = job.location?.city ?? null;
-    const state = job.location?.admin1Code ?? null;
-    const formattedLocation = [city, state].filter(Boolean).join(", ") || null;
+    const state = parseState(job.location?.formattedAddressShort);
+    const formattedLocation = job.location?.formattedAddressShort ?? null;
 
     return {
-      jobkey,
+      jobkey: job.jobKey,
       title: job.title,
       normalized_title: null,
-      company: job.employer?.name ?? null,
+      company: job.companyName ?? null,
       company_id: null,
-      company_rating: job.employer?.ratingsValue ?? null,
+      company_rating: job.rating?.rating ?? null,
       location_city: city,
       location_state: state,
       formatted_location: formattedLocation,
-      is_remote: isRemote(job),
-      salary_min: job.baseSalary?.min ?? null,
-      salary_max: job.baseSalary?.max ?? null,
-      salary_type: normalizeSalaryType(job.baseSalary?.unitOfWork),
-      salary_snippet: null,
+      is_remote: job.isRemote ?? false,
+      salary_min: null,
+      salary_max: null,
+      salary_type: job.salary?.salaryType ?? null,
+      salary_snippet: job.salary?.salaryText ?? null,
       job_types: extractJobTypes(job),
-      snippet: job.description?.text?.slice(0, 500) ?? null,
-      apply_url: job.jobUrl ?? job.url ?? null,
+      snippet: job.descriptionText?.slice(0, 500) ?? null,
+      apply_url: job.applyUrl ?? job.jobUrl ?? null,
       indeed_apply: false,
-      sponsored: job.isPlacement ?? false,
-      urgently_hiring: job.isUrgentHire ?? false,
+      sponsored: false,
+      urgently_hiring: job.hiringDemand?.isUrgentHire ?? false,
       apply_count: null,
-      published_at: job.datePublished ?? job.dateOnIndeed ?? null,
+      published_at: job.datePublished ?? null,
       expired: job.expired ?? false,
       scraped_at: new Date().toISOString(),
       raw: job,
     };
   });
 
-  // Drop rows with no usable jobkey
-  const validRows = rows.filter((r) => r.jobkey.length > 0);
+  // Drop rows with no usable jobkey, then deduplicate within this batch
+  const seen = new Set<string>();
+  const validRows = rows.filter((r) => {
+    if (!r.jobkey || seen.has(r.jobkey)) return false;
+    seen.add(r.jobkey);
+    return true;
+  });
 
   const { error } = await supabase
     .from("jobs")

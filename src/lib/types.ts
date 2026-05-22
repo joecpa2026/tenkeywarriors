@@ -48,40 +48,32 @@ export type Profile = {
 
 export type MatchedJob = Job & { match_score: number };
 
-// valig/indeed-jobs-scraper output shape
+// borderline/indeed-scraper output shape
 export type ApifyJobResult = {
-  key?: string;
-  url?: string;
+  jobKey: string;
   title: string;
-  jobUrl?: string;
-  refNum?: string;
-  datePublished?: string;
-  dateOnIndeed?: string;
-  expired?: boolean;
-  isUrgentHire?: boolean;
-  isHighVolumeHiring?: boolean;
-  isPlacement?: boolean;
+  jobType?: string[];           // e.g. ["Contract", "Remote"]
+  descriptionText?: string;
+  companyName?: string;
   location?: {
     city?: string;
-    admin1Code?: string;  // state abbreviation e.g. "NY"
-    countryCode?: string;
+    formattedAddressShort?: string;  // "City, ST"
   };
-  employer?: {
-    name?: string;
-    ratingsValue?: number;
-    ratingsCount?: number;
+  salary?: {
+    salaryText?: string;    // "From $27 an hour"
+    salaryType?: string;    // "hourly" | "yearly"
   };
-  // Flat key-value pairs with obfuscated keys; values are human-readable
-  // e.g. { "CF3CP": "Full-time", "AWHEP": "Paid holidays" }
-  attributes?: Record<string, string>;
-  baseSalary?: {
-    min?: number;
-    max?: number;
-    unitOfWork?: string;  // "YEAR" | "HOUR"
-    currencyCode?: string;
+  rating?: {
+    rating?: number;
+    count?: number;
   };
-  description?: {
-    text?: string;
-    html?: string;
+  hiringDemand?: {
+    isHighVolumeHiring?: boolean;
+    isUrgentHire?: boolean;
   };
+  isRemote?: boolean;
+  datePublished?: string;   // "2026-05-11"
+  expired?: boolean;
+  jobUrl?: string;          // Indeed detail page
+  applyUrl?: string;        // employer apply link
 };
