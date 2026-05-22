@@ -111,7 +111,7 @@ export default function JobsPage() {
         Browse Contract Jobs
       </h1>
       <p className="text-tkw-ink-mute text-sm mb-1">
-        Accounting &amp; finance roles updated daily from Indeed.
+        Contract accounting &amp; finance roles, updated daily.
       </p>
       {total !== null && (
         <p className="font-mono text-sm font-bold text-tkw-ink mb-8">

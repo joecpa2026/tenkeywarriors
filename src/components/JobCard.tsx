@@ -103,14 +103,19 @@ export function JobCard({ job, showScore = false }: Props) {
             : "Recently posted"}
         </span>
         {job.apply_url && (
-          <a
-            href={job.apply_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-semibold text-tkw-battle hover:text-tkw-battle-deep transition-colors"
+          <button
+            onClick={() => {
+              fetch("/api/apply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ job_id: job.id }),
+              }).catch(() => {});
+              window.open(job.apply_url!, "_blank", "noopener,noreferrer");
+            }}
+            className="text-sm font-semibold text-tkw-battle hover:text-tkw-battle-deep transition-colors cursor-pointer"
           >
             Apply →
-          </a>
+          </button>
         )}
       </div>
     </div>
