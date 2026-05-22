@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 const PROTECTED = ["/profile", "/matches"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const res = NextResponse.next();
 
   const supabase = createServerClient(
