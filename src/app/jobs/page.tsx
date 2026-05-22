@@ -5,7 +5,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { JobCard } from "@/components/JobCard";
 import type { Job } from "@/lib/types";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 25;
 
 const ROLE_OPTIONS = [
   "Accountant",
@@ -110,9 +110,14 @@ export default function JobsPage() {
       <h1 className="text-3xl font-bold tracking-tight text-tkw-ink mb-1">
         Browse Contract Jobs
       </h1>
-      <p className="text-tkw-ink-mute text-sm mb-8">
+      <p className="text-tkw-ink-mute text-sm mb-1">
         Accounting &amp; finance roles updated daily from Indeed.
       </p>
+      {total !== null && (
+        <p className="font-mono text-sm font-bold text-tkw-ink mb-8">
+          {total.toLocaleString()} contract roles in the database
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-8">
         <input
@@ -154,10 +159,11 @@ export default function JobsPage() {
         </div>
       ) : (
         <>
-          <p className="font-mono text-xs text-tkw-ink-mute tracking-wide mb-4">
-            {total !== null ? `${total.toLocaleString()} roles in database` : `${jobs.length} roles found`}
-            {(search || role || location) && ` · filtered`}
-          </p>
+          {(search || role || location) && total !== null && (
+            <p className="font-mono text-xs text-tkw-ink-mute tracking-wide mb-4">
+              {total.toLocaleString()} matching roles
+            </p>
+          )}
 
           <div className="space-y-3">
             {jobs.map((job) => (
