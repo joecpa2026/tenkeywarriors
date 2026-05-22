@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const ROLE_OPTIONS = [
@@ -57,11 +59,16 @@ const DEFAULT_FORM: FormState = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isNewUser = searchParams.get("new") === "1";
+
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [isExistingProfile, setIsExistingProfile] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -78,6 +85,7 @@ export default function ProfilePage() {
         .single();
 
       if (profile) {
+        setIsExistingProfile(true);
         setForm({
           full_name: profile.full_name ?? "",
           email: profile.email ?? user.email ?? "",
@@ -128,8 +136,13 @@ export default function ProfilePage() {
       updated_at: new Date().toISOString(),
     });
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    if (!isExistingProfile) {
+      // First-time setup — send them straight to their matches
+      router.push("/matches");
+    } else {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    }
   };
 
   if (!isSupabaseConfigured) {
@@ -142,17 +155,33 @@ export default function ProfilePage() {
 
   if (!userId) {
     return (
-      <div className="text-center py-16 text-gray-500">
-        You need to be signed in to set up your profile.
+      <div className="text-center py-16">
+        <p className="text-gray-500 mb-4">You need to be signed in to set up your profile.</p>
+        <Link
+          href="/auth/login"
+          className="inline-block bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700"
+        >
+          Sign in
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Your Profile</h1>
+      {(isNewUser || !isExistingProfile) && (
+        <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-4 mb-8">
+          <p className="text-indigo-800 font-semibold text-sm">Welcome to Ten Key Warriors!</p>
+          <p className="text-indigo-700 text-sm mt-0.5">
+            Fill out your profile below and we&apos;ll match you to the best contract roles daily.
+          </p>
+        </div>
+      )}
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">
+        {isExistingProfile ? "Your Profile" : "Set up your profile"}
+      </h1>
       <p className="text-gray-500 text-sm mb-8">
-        Tell us what you're looking for and we'll surface the best-fit contract roles.
+        Tell us what you&apos;re looking for and we&apos;ll surface the best-fit contract roles.
       </p>
 
       <div className="space-y-8">
@@ -324,7 +353,13 @@ export default function ProfilePage() {
           disabled={saving}
           className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {saving ? "Saving..." : saved ? "Saved!" : "Save profile"}
+          {saving
+            ? "Saving..."
+            : saved
+            ? "Saved!"
+            : isExistingProfile
+            ? "Save profile"
+            : "Save & see my matches →"}
         </button>
       </div>
     </div>

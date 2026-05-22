@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "accounting-jobs",
-      "runtimeExecutable": "/usr/local/bin/npm",
+      "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
     }
