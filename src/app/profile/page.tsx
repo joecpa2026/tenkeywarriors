@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -59,6 +59,14 @@ const DEFAULT_FORM: FormState = {
 };
 
 export default function ProfilePage() {
+  return (
+    <Suspense>
+      <ProfileForm />
+    </Suspense>
+  );
+}
+
+function ProfileForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNewUser = searchParams.get("new") === "1";
