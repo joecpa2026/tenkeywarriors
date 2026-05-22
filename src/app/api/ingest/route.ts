@@ -199,9 +199,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const raw: unknown[] = Array.isArray(body)
-    ? body
-    : ((body as { results?: unknown[] }).results ?? []);
+  // Support two payload shapes:
+  // 1. {"results": [...]}  — outputBody actors (Indeed/borderline)
+  // 2. {"datasetId": "..."}  — dataset actors (LinkedIn)
+  let raw: unknown[];
+  const datasetId = (body as { datasetId?: string }).datasetId;
+  if (datasetId) {
+    const apifyToken = process.env.APIFY_API_TOKEN;
+    const res = await fetch(
+      `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}&limit=2000`
+    );
+    raw = res.ok ? (await res.json() as unknown[]) : [];
+  } else {
+    raw = Array.isArray(body)
+      ? body
+      : ((body as { results?: unknown[] }).results ?? []);
+  }
 
   if (!raw.length) {
     return NextResponse.json({ upserted: 0, filtered: 0, source });

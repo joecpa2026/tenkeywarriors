@@ -16,24 +16,26 @@ export async function GET(req: NextRequest) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const webhookSecret = process.env.APIFY_WEBHOOK_SECRET;
 
-  function webhook(source: string) {
+  function webhook(source: string, useDataset = false) {
     return [
       {
         eventTypes: ["ACTOR.RUN.SUCCEEDED"],
         requestUrl: `${siteUrl}/api/ingest?source=${source}`,
         headersTemplate: `{"x-webhook-secret": "${webhookSecret}"}`,
-        payloadTemplate: `{"results": {{outputBody}}}`,
+        payloadTemplate: useDataset
+          ? `{"datasetId": "{{resource.defaultDatasetId}}"}`
+          : `{"results": {{outputBody}}}`,
       },
     ];
   }
 
-  async function runActor(actorId: string, input: Record<string, unknown>, source: string) {
+  async function runActor(actorId: string, input: Record<string, unknown>, source: string, useDataset = false) {
     const res = await fetch(
       `https://api.apify.com/v2/acts/${actorId.replace("/", "~")}/runs?token=${token}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...input, webhooks: webhook(source) }),
+        body: JSON.stringify({ ...input, webhooks: webhook(source, useDataset) }),
       }
     );
     const text = await res.text();
@@ -71,7 +73,7 @@ export async function GET(req: NextRequest) {
 
   const [indeedResult, linkedInResult] = await Promise.all([
     runActor("misceres/indeed-scraper", { startUrls: indeedUrls.map(url => ({ url })), maxItems: 200 }, "indeed"),
-    runActor("curious_coder/linkedin-jobs-scraper", { urls: linkedInUrls, maxResults: 500 }, "linkedin"),
+    runActor("curious_coder/linkedin-jobs-scraper", { urls: linkedInUrls, maxResults: 500 }, "linkedin", true),
   ]);
 
   return NextResponse.json({ sources: [indeedResult, linkedInResult] });
