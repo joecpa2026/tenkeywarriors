@@ -62,37 +62,41 @@ type JobRow = {
 // ── Normalizers ──────────────────────────────────────────────────────────────
 
 function normalizeIndeed(job: IndeedJobResult): JobRow | null {
-  if (!job.jobKey || !job.title) return null;
+  if (!job.id || !job.positionName) return null;
 
   const types = job.jobType ?? [];
-  const isContract = types.some(isContractType) || isContractByTitle(job.title);
+  const isContract = types.some(isContractType) || isContractByTitle(job.positionName);
   if (!isContract) return null;
 
+  const location = job.location ?? null;
+  const isRemote = /remote/i.test(location ?? "") || /remote/i.test(job.positionName);
+  const applyUrl = job.externalApplyLink ?? job.url ?? null;
+
   return {
-    jobkey: `ind_${job.jobKey}`,
+    jobkey: `ind_${job.id}`,
     source: "indeed",
-    title: job.title,
+    title: job.positionName,
     normalized_title: null,
-    company: job.companyName ?? null,
+    company: job.company ?? null,
     company_id: null,
     company_rating: null,
-    location_city: job.location?.city ?? null,
-    location_state: parseState(job.location?.formattedAddressShort),
-    formatted_location: job.location?.formattedAddressShort ?? null,
-    is_remote: job.isRemote ?? false,
+    location_city: null,
+    location_state: parseState(location),
+    formatted_location: location,
+    is_remote: isRemote,
     salary_min: null,
     salary_max: null,
-    salary_type: job.salary?.salaryType ?? null,
-    salary_snippet: job.salary?.salaryText ?? null,
+    salary_type: null,
+    salary_snippet: job.salary ?? null,
     job_types: types,
-    snippet: job.descriptionText?.slice(0, 500) ?? null,
-    apply_url: job.applyUrl ?? job.jobUrl ?? null,
-    indeed_apply: !job.applyUrl && !!job.jobUrl,
+    snippet: job.description?.slice(0, 500) ?? null,
+    apply_url: applyUrl,
+    indeed_apply: !job.externalApplyLink && !!job.url,
     sponsored: false,
-    urgently_hiring: job.hiringDemand?.isUrgentHire ?? false,
+    urgently_hiring: false,
     apply_count: null,
-    published_at: job.datePublished ?? null,
-    expired: job.expired ?? false,
+    published_at: job.postingDateParsed ?? null,
+    expired: job.isExpired === true || job.isExpired === "True",
     scraped_at: new Date().toISOString(),
     raw: job,
   };

@@ -49,28 +49,19 @@ export type Profile = {
 
 export type MatchedJob = Job & { match_score: number };
 
-// ── Indeed (borderline/indeed-scraper) ──────────────────────────────────────
+// ── Indeed (misceres/indeed-scraper) ────────────────────────────────────────
 export type IndeedJobResult = {
-  jobKey: string;
-  title: string;
+  id: string;
+  positionName: string;
+  company?: string;
+  location?: string;
   jobType?: string[];
-  descriptionText?: string;
-  companyName?: string;
-  location?: {
-    city?: string;
-    formattedAddressShort?: string;
-  };
-  salary?: {
-    salaryText?: string;
-    salaryType?: string;
-  };
-  rating?: { rating?: number; count?: number };
-  hiringDemand?: { isHighVolumeHiring?: boolean; isUrgentHire?: boolean };
-  isRemote?: boolean;
-  datePublished?: string;
-  expired?: boolean;
-  jobUrl?: string;
-  applyUrl?: string;
+  salary?: string;
+  description?: string;
+  externalApplyLink?: string | null;
+  url?: string;
+  postingDateParsed?: string;
+  isExpired?: boolean | string;
 };
 
 // ── LinkedIn (curious_coder/linkedin-jobs-scraper) ───────────────────────────
