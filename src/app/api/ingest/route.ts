@@ -109,8 +109,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Expire jobs not seen in the last 30 days — scraped_at is updated on every
+  // upsert, so anything still showing 30+ days old was missed by recent scrapes.
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: expiredRows } = await supabase
+    .from("jobs")
+    .update({ expired: true })
+    .lt("scraped_at", cutoff)
+    .eq("expired", false)
+    .select("id");
+
   return NextResponse.json({
     upserted: validRows.length,
     filtered: items.length - contractOnly.length,
+    expired: expiredRows?.length ?? 0,
   });
 }
