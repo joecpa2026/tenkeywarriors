@@ -58,6 +58,15 @@ const DEFAULT_FORM: FormState = {
   alert_frequency: "daily",
 };
 
+const inputClass =
+  "w-full border border-tkw-hairline rounded-md px-3 py-2.5 text-sm bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors";
+
+const selectClass =
+  "border border-tkw-hairline rounded-md px-3 py-2.5 text-sm bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors";
+
+const sectionHeadingClass =
+  "font-mono text-[11px] font-medium tracking-[0.12em] uppercase text-tkw-ink-mute mb-3";
+
 export default function ProfilePage() {
   return (
     <Suspense>
@@ -145,7 +154,6 @@ function ProfileForm() {
     });
     setSaving(false);
     if (!isExistingProfile) {
-      // First-time setup — send them straight to their matches
       router.push("/matches");
     } else {
       setSaved(true);
@@ -155,8 +163,10 @@ function ProfileForm() {
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="text-center py-16 text-gray-500">
-        Add your Supabase keys to <code className="bg-gray-100 px-1 rounded">.env.local</code> to enable profiles.
+      <div className="text-center py-16 text-tkw-ink-mute">
+        Add your Supabase keys to{" "}
+        <code className="bg-tkw-paper-deep px-1.5 py-0.5 rounded text-xs font-mono">.env.local</code>{" "}
+        to enable profiles.
       </div>
     );
   }
@@ -164,10 +174,10 @@ function ProfileForm() {
   if (!userId) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500 mb-4">You need to be signed in to set up your profile.</p>
+        <p className="text-tkw-ink-mute mb-6">You need to be signed in to set up your profile.</p>
         <Link
           href="/auth/login"
-          className="inline-block bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700"
+          className="inline-flex items-center gap-2 bg-tkw-battle text-tkw-paper-soft px-6 py-3 rounded-md font-semibold text-sm hover:bg-tkw-battle-deep transition-colors"
         >
           Sign in
         </Link>
@@ -178,57 +188,57 @@ function ProfileForm() {
   return (
     <div className="max-w-2xl">
       {(isNewUser || !isExistingProfile) && (
-        <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-4 mb-8">
-          <p className="text-indigo-800 font-semibold text-sm">Welcome to Ten Key Warriors!</p>
-          <p className="text-indigo-700 text-sm mt-0.5">
+        <div className="bg-tkw-battle-soft border border-[#F2BFB6] rounded-lg px-5 py-4 mb-8">
+          <p className="text-tkw-battle-deep font-semibold text-sm">Welcome to Ten Key Warriors!</p>
+          <p className="text-tkw-battle text-sm mt-0.5">
             Fill out your profile below and we&apos;ll match you to the best contract roles daily.
           </p>
         </div>
       )}
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">
+
+      <p className="font-mono text-xs font-medium tracking-[0.12em] uppercase text-tkw-battle mb-2">
+        Your account
+      </p>
+      <h1 className="text-3xl font-bold tracking-tight text-tkw-ink mb-1">
         {isExistingProfile ? "Your Profile" : "Set up your profile"}
       </h1>
-      <p className="text-gray-500 text-sm mb-8">
+      <p className="text-tkw-ink-mute text-sm mb-10">
         Tell us what you&apos;re looking for and we&apos;ll surface the best-fit contract roles.
       </p>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {/* Basic info */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            About you
-          </h2>
+          <h2 className={sectionHeadingClass}>About you</h2>
           <div className="space-y-3">
             <input
               type="text"
               placeholder="Full name"
               value={form.full_name}
               onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className={inputClass}
             />
             <input
               type="email"
               value={authEmail}
               disabled
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400"
+              className="w-full border border-tkw-hairline rounded-md px-3 py-2.5 text-sm bg-tkw-paper-deep text-tkw-ink-mute cursor-not-allowed"
             />
           </div>
         </section>
 
         {/* Role types */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            Role types
-          </h2>
+          <h2 className={sectionHeadingClass}>Role types</h2>
           <div className="flex flex-wrap gap-2">
             {ROLE_OPTIONS.map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => toggle("role_types", value)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${
                   form.role_types.includes(value)
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"
+                    ? "bg-tkw-ink text-tkw-paper-soft border-tkw-ink"
+                    : "bg-tkw-paper text-tkw-ink-soft border-tkw-hairline hover:border-tkw-ink hover:bg-tkw-paper-deep"
                 }`}
               >
                 {label}
@@ -239,18 +249,16 @@ function ProfileForm() {
 
         {/* Skills */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            Skills
-          </h2>
+          <h2 className={sectionHeadingClass}>Skills</h2>
           <div className="flex flex-wrap gap-2">
             {SKILL_OPTIONS.map((skill) => (
               <button
                 key={skill}
                 onClick={() => toggle("skills", skill)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${
                   form.skills.includes(skill)
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"
+                    ? "bg-tkw-ink text-tkw-paper-soft border-tkw-ink"
+                    : "bg-tkw-paper text-tkw-ink-soft border-tkw-hairline hover:border-tkw-ink hover:bg-tkw-paper-deep"
                 }`}
               >
                 {skill}
@@ -261,14 +269,12 @@ function ProfileForm() {
 
         {/* Rate */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            Rate expectations
-          </h2>
+          <h2 className={sectionHeadingClass}>Rate expectations</h2>
           <div className="flex flex-wrap gap-3 items-center">
             <select
               value={form.rate_type}
               onChange={(e) => setForm((f) => ({ ...f, rate_type: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className={selectClass}
             >
               <option value="hourly">Hourly</option>
               <option value="yearly">Yearly</option>
@@ -278,50 +284,48 @@ function ProfileForm() {
               placeholder={form.rate_type === "hourly" ? "Min $/hr" : "Min $k"}
               value={form.rate_min}
               onChange={(e) => setForm((f) => ({ ...f, rate_min: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="border border-tkw-hairline rounded-md px-3 py-2.5 text-sm w-28 bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors"
             />
-            <span className="text-gray-400">–</span>
+            <span className="text-tkw-ink-mute">–</span>
             <input
               type="number"
               placeholder={form.rate_type === "hourly" ? "Max $/hr" : "Max $k"}
               value={form.rate_max}
               onChange={(e) => setForm((f) => ({ ...f, rate_max: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="border border-tkw-hairline rounded-md px-3 py-2.5 text-sm w-28 bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors"
             />
           </div>
         </section>
 
         {/* Location */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            Location
-          </h2>
-          <div className="flex flex-wrap gap-3 items-center">
+          <h2 className={sectionHeadingClass}>Location</h2>
+          <div className="flex flex-wrap gap-4 items-center">
             <select
               value={form.location_state}
               onChange={(e) => setForm((f) => ({ ...f, location_state: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className={selectClass}
             >
               <option value="">Select state</option>
               {STATE_OPTIONS.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-sm text-tkw-ink-soft cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.remote_ok}
                 onChange={(e) => setForm((f) => ({ ...f, remote_ok: e.target.checked }))}
-                className="rounded"
+                className="rounded accent-tkw-battle"
               />
               Open to remote
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-sm text-tkw-ink-soft cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.on_site_ok}
                 onChange={(e) => setForm((f) => ({ ...f, on_site_ok: e.target.checked }))}
-                className="rounded"
+                className="rounded accent-tkw-battle"
               />
               Open to on-site
             </label>
@@ -330,16 +334,14 @@ function ProfileForm() {
 
         {/* Alerts */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-            Email alerts
-          </h2>
-          <div className="flex flex-wrap gap-3 items-center">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+          <h2 className={sectionHeadingClass}>Email alerts</h2>
+          <div className="flex flex-wrap gap-4 items-center">
+            <label className="flex items-center gap-2 text-sm text-tkw-ink-soft cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.email_alerts}
                 onChange={(e) => setForm((f) => ({ ...f, email_alerts: e.target.checked }))}
-                className="rounded"
+                className="rounded accent-tkw-battle"
               />
               Send me new match alerts
             </label>
@@ -347,7 +349,7 @@ function ProfileForm() {
               <select
                 value={form.alert_frequency}
                 onChange={(e) => setForm((f) => ({ ...f, alert_frequency: e.target.value }))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className={selectClass}
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -359,7 +361,7 @@ function ProfileForm() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 bg-tkw-battle text-tkw-paper-soft px-6 py-3 rounded-md font-semibold text-sm hover:bg-tkw-battle-deep disabled:opacity-50 transition-colors"
         >
           {saving
             ? "Saving..."

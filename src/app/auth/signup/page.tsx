@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+const inputClass =
+  "w-full border border-tkw-hairline rounded-md px-4 py-3 text-sm bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors";
+
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,9 +39,9 @@ export default function SignupPage() {
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">📬</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-          <p className="text-gray-500 text-sm">
-            We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
+          <h2 className="text-xl font-bold tracking-tight text-tkw-ink mb-2">Check your email</h2>
+          <p className="text-tkw-ink-mute text-sm">
+            We sent a confirmation link to <strong className="text-tkw-ink">{email}</strong>. Click it to activate your account.
           </p>
         </div>
       </div>
@@ -49,8 +52,8 @@ export default function SignupPage() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-tkw-ink">Create your account</h1>
+          <p className="text-tkw-ink-mute text-sm mt-1">
             Find contract accounting roles matched to you
           </p>
         </div>
@@ -62,32 +65,30 @@ export default function SignupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className={inputClass}
           />
-          <div>
-            <input
-              type="password"
-              placeholder="Password (min 8 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <input
+            type="password"
+            placeholder="Password (min 8 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            className={inputClass}
+          />
+          {error && <p className="text-sm text-tkw-battle">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="w-full bg-tkw-battle text-tkw-paper-soft py-3 rounded-md font-semibold text-sm hover:bg-tkw-battle-deep disabled:opacity-50 transition-colors"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-tkw-ink-mute mt-6">
           Already have an account?{" "}
-          <Link href="/auth/login" className="text-indigo-600 font-medium hover:underline">
+          <Link href="/auth/login" className="text-tkw-battle font-semibold hover:text-tkw-battle-deep transition-colors">
             Sign in
           </Link>
         </p>

@@ -31,6 +31,9 @@ const STATE_OPTIONS = [
   "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
 ];
 
+const inputClass =
+  "border border-tkw-hairline rounded-md px-3 py-2 text-sm bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors";
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,24 +80,28 @@ export default function JobsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Browse Contract Jobs</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        Contract accounting roles updated daily from Indeed.
+      <p className="font-mono text-xs font-medium tracking-[0.12em] uppercase text-tkw-battle mb-2">
+        Contract roles
+      </p>
+      <h1 className="text-3xl font-bold tracking-tight text-tkw-ink mb-1">
+        Browse Contract Jobs
+      </h1>
+      <p className="text-tkw-ink-mute text-sm mb-8">
+        Accounting &amp; finance roles updated daily from Indeed.
       </p>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3 mb-8">
         <input
           type="text"
           placeholder="Search titles..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          className={`${inputClass} flex-1 min-w-40`}
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          className={inputClass}
         >
           <option value="">All roles</option>
           {ROLE_OPTIONS.map((r) => (
@@ -104,7 +111,7 @@ export default function JobsPage() {
         <select
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          className={inputClass}
         >
           <option value="">All locations</option>
           {STATE_OPTIONS.map((s) => (
@@ -114,14 +121,18 @@ export default function JobsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400">Loading jobs...</div>
+        <div className="text-center py-16 text-tkw-ink-mute font-mono text-sm tracking-wide">
+          Loading jobs...
+        </div>
       ) : jobs.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-tkw-ink-mute">
           No jobs found. Try adjusting your filters.
         </div>
       ) : (
         <>
-          <p className="text-sm text-gray-400 mb-3">{jobs.length} role{jobs.length !== 1 ? "s" : ""} found</p>
+          <p className="font-mono text-xs text-tkw-ink-mute tracking-wide mb-4">
+            {jobs.length} role{jobs.length !== 1 ? "s" : ""} found
+          </p>
           <div className="space-y-3">
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} />

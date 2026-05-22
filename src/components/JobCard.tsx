@@ -2,7 +2,6 @@
 
 import type { Job, MatchedJob } from "@/lib/types";
 
-// Only show tags that add info beyond "it's a contract role" — which is already the whole site
 const DISPLAY_TAGS = new Set([
   "part-time", "full-time", "hybrid", "seasonal", "internship",
 ]);
@@ -28,74 +27,77 @@ export function JobCard({ job, showScore = false }: Props) {
   };
 
   const salary = salaryLabel();
+  const companyInitial = job.company ? job.company.charAt(0).toUpperCase() : "?";
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-base leading-snug truncate">
-            {job.title}
-          </h3>
-          <p className="text-sm text-gray-600 mt-0.5">
+    <div className="bg-tkw-paper-soft border border-tkw-hairline rounded-md p-6 flex flex-col gap-3 hover:shadow-tkw-card transition-shadow">
+      {/* Company row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-tkw-paper-deep flex items-center justify-center text-xs font-bold text-tkw-ink shrink-0">
+            {companyInitial}
+          </div>
+          <span className="font-mono text-[11px] font-medium tracking-[0.1em] uppercase text-tkw-ink-mute">
             {job.company ?? "Company not listed"}
             {job.company_rating ? (
-              <span className="text-yellow-500 ml-2">★ {job.company_rating}</span>
+              <span className="ml-2 text-amber-600">★ {job.company_rating}</span>
             ) : null}
-          </p>
+          </span>
         </div>
         {showScore && score != null && (
-          <div
-            className={`shrink-0 text-sm font-bold px-2.5 py-1 rounded-full ${
+          <span
+            className={`text-xs font-mono font-semibold px-2 py-1 rounded ${
               score >= 70
-                ? "bg-green-100 text-green-700"
+                ? "bg-tkw-black-green-soft text-tkw-black-green"
                 : score >= 50
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-gray-100 text-gray-500"
+                ? "bg-tkw-paper-deep text-tkw-ink-mute"
+                : "bg-tkw-paper-deep text-tkw-ink-mute"
             }`}
           >
             {score}% match
-          </div>
+          </span>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 mt-3 text-xs text-gray-500">
+      {/* Title */}
+      <h3 className="text-xl font-bold leading-snug tracking-tight text-tkw-ink">
+        {job.title}
+      </h3>
+
+      {/* Salary */}
+      {salary && (
+        <p className="font-mono font-bold text-lg text-tkw-battle tracking-wide">
+          {salary}
+        </p>
+      )}
+
+      {/* Meta */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[12px] text-tkw-ink-mute tracking-wide">
         {job.formatted_location && (
-          <span className="flex items-center gap-1">
-            📍 {job.formatted_location}
-          </span>
+          <span>{job.formatted_location}</span>
         )}
         {job.is_remote && (
-          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
-            Remote
-          </span>
+          <span className="text-tkw-ink-mute">Remote</span>
         )}
         {job.job_types
           ?.filter((t) => DISPLAY_TAGS.has(t.toLowerCase()))
           .map((t) => (
-            <span
-              key={t}
-              className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize"
-            >
-              {t}
-            </span>
+            <span key={t} className="capitalize">{t}</span>
           ))}
         {job.urgently_hiring && (
-          <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-medium">
-            Urgently hiring
-          </span>
+          <span className="text-tkw-battle font-semibold">Urgently hiring</span>
         )}
       </div>
 
-      {salary && (
-        <p className="mt-2 text-sm font-medium text-gray-700">{salary}</p>
-      )}
-
       {job.snippet && (
-        <p className="mt-2 text-sm text-gray-500 line-clamp-2">{job.snippet}</p>
+        <p className="text-sm text-tkw-ink-mute line-clamp-2 leading-relaxed">
+          {job.snippet}
+        </p>
       )}
 
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs text-gray-400">
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-dashed border-tkw-hairline mt-auto">
+        <span className="font-mono text-[11px] text-tkw-ink-mute tracking-wide">
           {job.published_at
             ? new Date(job.published_at).toLocaleDateString("en-US", {
                 month: "short",
@@ -108,7 +110,7 @@ export function JobCard({ job, showScore = false }: Props) {
             href={job.apply_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+            className="text-sm font-semibold text-tkw-battle hover:text-tkw-battle-deep transition-colors"
           >
             Apply →
           </a>

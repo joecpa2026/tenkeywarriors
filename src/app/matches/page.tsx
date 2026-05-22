@@ -25,54 +25,52 @@ export default function MatchesPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-16 text-gray-400">Finding your matches...</div>;
-  }
-
-  if (error === "Unauthorized") {
     return (
-      <div className="text-center py-16">
-        <p className="text-gray-500 mb-4">Sign in to see your personalized matches.</p>
-        <Link
-          href="/profile"
-          className="inline-block bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700"
-        >
-          Create your profile
-        </Link>
+      <div className="text-center py-16 text-tkw-ink-mute font-mono text-sm tracking-wide">
+        Finding your matches...
       </div>
     );
   }
 
-  if (error === "Profile not found") {
+  if (error === "Unauthorized" || error === "Profile not found") {
+    const isUnauth = error === "Unauthorized";
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500 mb-4">
-          Set up your profile so we can match you to jobs.
+        <p className="text-tkw-ink-mute mb-6">
+          {isUnauth
+            ? "Sign in to see your personalized matches."
+            : "Set up your profile so we can match you to jobs."}
         </p>
         <Link
-          href="/profile"
-          className="inline-block bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700"
+          href={isUnauth ? "/auth/login" : "/profile"}
+          className="inline-flex items-center gap-2 bg-tkw-battle text-tkw-paper-soft px-6 py-3 rounded-md font-semibold text-sm hover:bg-tkw-battle-deep transition-colors"
         >
-          Set up profile
+          {isUnauth ? "Sign in" : "Set up profile"}
         </Link>
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-center py-16 text-red-500">{error}</div>;
+    return <div className="text-center py-16 text-tkw-battle">{error}</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Your Matches</h1>
-      <p className="text-gray-500 text-sm mb-6">
+      <p className="font-mono text-xs font-medium tracking-[0.12em] uppercase text-tkw-battle mb-2">
+        Personalized
+      </p>
+      <h1 className="text-3xl font-bold tracking-tight text-tkw-ink mb-1">
+        Your Matches
+      </h1>
+      <p className="text-tkw-ink-mute text-sm mb-8">
         {matches.length} job{matches.length !== 1 ? "s" : ""} ranked by fit to your profile.
       </p>
 
       {matches.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-tkw-ink-mute">
           No matches yet — check back after the next daily scrape, or{" "}
-          <Link href="/profile" className="text-indigo-600 underline">
+          <Link href="/profile" className="text-tkw-battle hover:underline">
             update your profile
           </Link>{" "}
           to broaden your criteria.

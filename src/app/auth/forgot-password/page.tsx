@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+const inputClass =
+  "w-full border border-tkw-hairline rounded-md px-4 py-3 text-sm bg-tkw-paper text-tkw-ink focus:outline-none focus:border-tkw-battle focus:ring-2 focus:ring-tkw-battle-soft transition-colors";
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,9 +34,9 @@ export default function ForgotPasswordPage() {
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">📬</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-          <p className="text-gray-500 text-sm">
-            We sent a password reset link to <strong>{email}</strong>.
+          <h2 className="text-xl font-bold tracking-tight text-tkw-ink mb-2">Check your email</h2>
+          <p className="text-tkw-ink-mute text-sm">
+            We sent a password reset link to <strong className="text-tkw-ink">{email}</strong>.
           </p>
         </div>
       </div>
@@ -44,8 +47,8 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-tkw-ink">Reset your password</h1>
+          <p className="text-tkw-ink-mute text-sm mt-1">
             We&apos;ll send a reset link to your email.
           </p>
         </div>
@@ -57,20 +60,20 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className={inputClass}
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-tkw-battle">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="w-full bg-tkw-battle text-tkw-paper-soft py-3 rounded-md font-semibold text-sm hover:bg-tkw-battle-deep disabled:opacity-50 transition-colors"
           >
             {loading ? "Sending..." : "Send reset link"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          <Link href="/auth/login" className="text-indigo-600 font-medium hover:underline">
+        <p className="text-center text-sm text-tkw-ink-mute mt-6">
+          <Link href="/auth/login" className="text-tkw-battle font-semibold hover:text-tkw-battle-deep transition-colors">
             Back to sign in
           </Link>
         </p>
