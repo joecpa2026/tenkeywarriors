@@ -39,9 +39,6 @@ export function JobCard({ job, showScore = false }: Props) {
           </div>
           <span className="font-mono text-[11px] font-medium tracking-[0.1em] uppercase text-tkw-ink-mute">
             {job.company ?? "Company not listed"}
-            {job.company_rating ? (
-              <span className="ml-2 text-amber-600">★ {job.company_rating}</span>
-            ) : null}
           </span>
         </div>
         {showScore && score != null && (
